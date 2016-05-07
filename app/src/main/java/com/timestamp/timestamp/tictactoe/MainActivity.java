@@ -1,5 +1,6 @@
 package com.timestamp.timestamp.tictactoe;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.nfc.Tag;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean won = false;
     private ImageView box1;
     private ImageView box2;
     private ImageView box3;
@@ -34,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView box7;
     private ImageView box8;
     private ImageView box9;
-    private ArrayList<Pair> imgPairs;
     private ArrayList<SquareInfo> board;
+    private List<Integer> pieceSquares = new ArrayList<Integer>();
 
     private TextView gameInfo;
     private Button newGame;
@@ -57,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imgPairs = new ArrayList<Pair>();
         box1 = (ImageView) findViewById(R.id.box1);
         box2 = (ImageView) findViewById(R.id.box2);
         box3 = (ImageView) findViewById(R.id.box3);
@@ -82,17 +83,17 @@ public class MainActivity extends AppCompatActivity {
         gameInfo = (TextView) findViewById(R.id.turn_info);
         newGame = (Button) findViewById(R.id.newGame);
 
-        player1 = new Player("Ryan", (int) R.drawable.x);
+        player1 = new Player("Player 1", (int) R.drawable.x);
         player2 = new Player("Player 2", (int) R.drawable.o);
 
         newGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startGame();
+                startGame(true);
             }
         });
 
-        startGame();
+        startGame(true);
         View.OnClickListener boxClicked = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 ImageView box = (ImageView) v;
@@ -138,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void checkWin(Player player, Integer viewId){
         //Top Row Horizontal
-        boolean won = false;
+        won = false;
         List<Integer> pieceSquares = new ArrayList<Integer>();
         for(SquareInfo s: board){
             if(s.pieceId == player.getPiece()){
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         if(pieceSquares.contains(1) && pieceSquares.contains(5) && pieceSquares.contains(9)){
             won=true;
         }
-        if(pieceSquares.contains(2) && pieceSquares.contains(5) && pieceSquares.contains(6)){
+        if(pieceSquares.contains(2) && pieceSquares.contains(5) && pieceSquares.contains(8)){
             won=true;
         }
         if(pieceSquares.contains(3) && pieceSquares.contains(6) && pieceSquares.contains(9)){
@@ -172,14 +173,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(won==true){
-            gameOver();
-            won=false;
+            gameOver(player);
         }
     }
-    public void gameOver(){
-
+    public void gameOver(Player player){
+        Intent intent = new Intent(MainActivity.this,Popup.class);
+        intent.putExtra("player", player.getName());
+        startActivity(intent);
+        startGame(false);
     }
-    public void startGame() {
+    public void startGame(boolean justLaunched) {
         box1.setImageDrawable(null);
         box2.setImageDrawable(null);
         box3.setImageDrawable(null);
@@ -190,19 +193,11 @@ public class MainActivity extends AppCompatActivity {
         box8.setImageDrawable(null);
         box9.setImageDrawable(null);
         gameInfo.setText(player1.getName());
-        imgPairs = new ArrayList<Pair>();
-    }
-    public void updateImg(Integer imgId, Integer viewId){
-        boolean matchFlag = false;
-        for(Pair p : imgPairs){
-            if(p.viewId==viewId){
-                p.imgId=imgId;
-                matchFlag=true;
-            }
+        for(SquareInfo s: board){
+            s.pieceId=0;
         }
-        if(matchFlag==false){
-            imgPairs.add(new Pair(imgId,viewId));
-        }
+        pieceSquares = new ArrayList<Integer>();
+        if(justLaunched == false){turn=-1;}else{turn=0;}
     }
 
     @Override
